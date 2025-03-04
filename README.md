@@ -8,6 +8,9 @@
 - This project aims to find an optimal balance between the accuracy and computational cost of pose estimation models. Furthermore, it enhances scalability for real-time applications.
 
 ## Project Overview
+-This project selects only the minimal set of joints necessary to identify the user's posture.
+![Image](https://github.com/user-attachments/assets/fbcaaf9f-c392-42f1-8888-ea22458c664b)
+
 
 
 ### 
