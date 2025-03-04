@@ -1,4 +1,4 @@
-//선형 보간 및 확장 칼만 필터 행렬/벡터 연산 함수
+//Linear Interpolation and Extended Kalman Filter Matrix/Vector Operations Functions
 export function lerp(a, b, t) {
   return a + (b - a) * t;
 }
