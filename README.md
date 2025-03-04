@@ -13,7 +13,7 @@
 - This project aims to find an optimal balance between the accuracy and computational cost of pose estimation models. Furthermore, it enhances scalability for real-time applications.
 
 ## Solution Approach
-- This project proposes treating the z-coordinate predicted by the Lightweight pose estimation model as noise and filtering it using a Kalman filter.
+- In this project, the z-coordinate predicted by lightweight pose estimation models is treated as noise and filtered using a Kalman filter to improve stability and accuracy."
 - The Kalman filter is an algorithm that estimates the true state of a system by recursively filtering out noise from observed data. It is widely used in real-time tracking applications to improve accuracy and stability.
 - In the Kalman filter, state transition is a key factor, and defining this function properly plays a crucial role in determining the filter's performance.
 - This project uses a Kalman filter state transition function that incorporates a smoothing transition method while enforcing projection constraints based on predefined joint lengths, ensuring gradual and stable updates with a maximum step size constraint.
@@ -28,7 +28,7 @@
 
 This project selects only the minimal set of joints necessary to identify the user's posture.
 
-### KalmanFilter State Transition
+### KalmanFilter: State Transition
 
 - The range of motion of human joints can be defined using a sphere equation when certain parts are fixed. In this case, assuming that the x and y coordinates are relatively accurate, we can approximate the length parameter r and infer that 𝑧^2 = 𝑟^2−𝑥^2−𝑦^2. Based on this sphere equation, the state transition is defined.
 - However, since the z-coordinate has two possible solutions, and MediaPipe is not always accurate in determining the front-back relationship of joints, its predictions become less reliable near the sphere's boundary. To address this, smoothing is applied by dividing the solution into the 3/4 and 1/4 positions.
@@ -38,5 +38,5 @@ This project selects only the minimal set of joints necessary to identify the us
 
 # Getting Started
 - This project does not require any additional library installations. Simply download the project and run index.html using Live Server or via npm.
-- When running the project, clicking the 'Follow Skeleton' button enables the third-person camera to follow the skeleton.
+- Click the 'Follow Skeleton' button while running the project to activate the third-person camera, allowing it to follow the skeleton.
 
