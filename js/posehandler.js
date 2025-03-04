@@ -6,7 +6,7 @@ import { lerp } from "./mathutils.js";
 
 let ekf = null;
 
-// 지원 브라우저 체크 (예: Chrome만 지원)
+// Check supported browsers (e.g., only supports Chrome)
 export function testSupport(supportedDevices) {
   const deviceDetector = new DeviceDetector();
   const detectedDevice = deviceDetector.parse(navigator.userAgent);
@@ -28,8 +28,8 @@ export function testSupport(supportedDevices) {
   }
 }
 
-// MediaPipe Pose 결과 수신 시 호출되는 콜백 함수
-// (canvasCtx, canvasElement, fpsControl, grid, followMode 등은 main.js에서 전달)
+// Callback function triggered when receiving MediaPipe Pose results
+// (canvasCtx, canvasElement, fpsControl, grid, followMode are passed from main.js)
 export function onResults(results, canvasCtx, canvasElement, fpsControl, grid, followMode) {
   let skeletonEntity = document.getElementById('skeleton');
   if (!skeletonEntity) {
@@ -38,7 +38,7 @@ export function onResults(results, canvasCtx, canvasElement, fpsControl, grid, f
     document.querySelector('a-scene').appendChild(skeletonEntity);
   }
 
-  // ── 2D 이미지 기반 글로벌 오프셋 보정 ──
+  // ── Global offset correction based on 2D image ──
   if (results.poseLandmarks) {
     const leftHip = results.poseLandmarks[23];
     const rightHip = results.poseLandmarks[24];
@@ -65,6 +65,7 @@ export function onResults(results, canvasCtx, canvasElement, fpsControl, grid, f
       newSkeletonPos.z = lerp(window.lastSkeletonPos.z, newSkeletonPos.z, 0.2);
     }
 
+    // Adjust Z position using EKF-based filtering
     if (results.poseWorldLandmarks) {
       const leftAnkle = results.poseWorldLandmarks[27];
       const rightAnkle = results.poseWorldLandmarks[28];
@@ -82,7 +83,7 @@ export function onResults(results, canvasCtx, canvasElement, fpsControl, grid, f
     window.lastSkeletonPos = newSkeletonPos;
   }
 
-  // ── EKF 기반 z 보정 ──
+  // ── Filtering Z-coordinates using EKF ──
   if (results.poseWorldLandmarks) {
     let joints = [];
     for (let i = 0; i < mapping.length; i++) {
@@ -106,7 +107,7 @@ export function onResults(results, canvasCtx, canvasElement, fpsControl, grid, f
     window.filteredZ = ekf.x.slice();
   }
 
-  // ── 스켈레톤 렌더링 (리맵핑 적용; 클램핑은 스무딩 상태전이에 통합되어 별도 처리 없음) ──
+  // ── Render Skeleton ──
   if (results.poseWorldLandmarks) {
     const poseLandmarks = results.poseWorldLandmarks;
     let measuredPositions = [];
@@ -114,28 +115,25 @@ export function onResults(results, canvasCtx, canvasElement, fpsControl, grid, f
       let lm = poseLandmarks[mapping[i]];
       let x = (lm && typeof lm.x === 'number' && !isNaN(lm.x)) ? lm.x : 0;
       let y = (lm && typeof lm.y === 'number' && !isNaN(lm.y)) ? lm.y : 0;
-      // EKF 처리된 필터링 z 값을 사용
       let z = window.filteredZ ? (window.filteredZ[i] || 0) : 0;
       measuredPositions.push({ x, y, z });
     }
-    // 리맵핑 수행 (여기서 개별 관절의 이동 제한은 상태전이 함수 내의 스무딩에서 처리됨)
     let remappedPositions = computeRemappedPositions(measuredPositions);
 
-    // 기존 스켈레톤 엔티티 초기화
+    // Reset previous skeleton entity
     while (skeletonEntity.firstChild) {
       skeletonEntity.removeChild(skeletonEntity.firstChild);
     }
-    // 각 관절 구체 생성
+    // Generate joint spheres
     for (let i = 0; i < remappedPositions.length; i++) {
       const pos = remappedPositions[i];
       const landmarkEntity = document.createElement('a-entity');
       landmarkEntity.setAttribute('geometry', 'primitive: sphere; radius: 0.05');
       landmarkEntity.setAttribute('material', 'color: red');
-      // A-Frame 좌표계에 맞게 y, z 반전 적용
       landmarkEntity.setAttribute('position', `${pos.x} ${-pos.y} ${-pos.z}`);
       skeletonEntity.appendChild(landmarkEntity);
     }
-    // 관절 연결선 생성
+    // Generate connection lines
     for (const conn of connectionsInternal) {
       const idxStart = conn[0], idxEnd = conn[1];
       let startPos = remappedPositions[idxStart];
@@ -144,84 +142,10 @@ export function onResults(results, canvasCtx, canvasElement, fpsControl, grid, f
       lineEntity.setAttribute('line', `start: ${startPos.x} ${-startPos.y} ${-startPos.z}; end: ${endPos.x} ${-endPos.y} ${-endPos.z}; color: white;`);
       skeletonEntity.appendChild(lineEntity);
     }
-  } else {
-    while (skeletonEntity.firstChild) {
-      skeletonEntity.removeChild(skeletonEntity.firstChild);
-    }
   }
 
-  // ── 캔버스 및 UI 업데이트 ──
+  // ── UI & Canvas Update ──
   document.body.classList.add('loaded');
   fpsControl.tick();
-  canvasCtx.save();
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-  if (results.segmentationMask) {
-    canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
-    canvasCtx.globalCompositeOperation = 'source-out';
-    canvasCtx.fillStyle = '#0000FF7F';
-    canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
-    canvasCtx.globalCompositeOperation = 'destination-atop';
-    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-    canvasCtx.globalCompositeOperation = 'source-over';
-  } else {
-    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-  }
-
-  if (results.poseLandmarks) {
-    const allowedNeutral = [0];
-    const allowedShoulderElbowWrist = [11, 13, 15, 12, 14, 16];
-    const allowedLowerBody = [23, 25, 27, 24, 26, 28];
-
-    const neutralLandmarks = allowedNeutral.map(i => results.poseLandmarks[i]);
-    const shoulderElbowWristLandmarks = allowedShoulderElbowWrist.map(i => results.poseLandmarks[i]);
-    const lowerBodyLandmarks = allowedLowerBody.map(i => results.poseLandmarks[i]);
-
-    window.drawLandmarks(canvasCtx, neutralLandmarks, {
-      visibilityMin: 0.65,
-      color: 'white',
-      fillColor: 'white'
-    });
-    window.drawLandmarks(canvasCtx, shoulderElbowWristLandmarks, {
-      visibilityMin: 0.65,
-      color: 'white',
-      fillColor: 'rgb(255,138,0)'
-    });
-    window.drawLandmarks(canvasCtx, lowerBodyLandmarks, {
-      visibilityMin: 0.65,
-      color: 'white',
-      fillColor: 'rgb(0,217,231)'
-    });
-  }
-
-  canvasCtx.restore();
-
-  const mpPose = window.mpPose || window.Pose;
-  const landmarksLeft = mpPose && mpPose.POSE_LANDMARKS_LEFT ? Object.values(mpPose.POSE_LANDMARKS_LEFT) : [];
-  const landmarksRight = mpPose && mpPose.POSE_LANDMARKS_RIGHT ? Object.values(mpPose.POSE_LANDMARKS_RIGHT) : [];
-
-  if (results.poseWorldLandmarks) {
-    grid.updateLandmarks(results.poseWorldLandmarks, mpPose.POSE_CONNECTIONS, [
-      { list: landmarksLeft, color: 'LEFT' },
-      { list: landmarksRight, color: 'RIGHT' },
-    ]);
-  } else {
-    grid.updateLandmarks([]);
-  }
-
-  // Follow 카메라 기능
-  if (followMode && window.lastSkeletonPos) {
-    let targetCamPos = {
-      x: window.lastSkeletonPos.x,
-      y: window.lastSkeletonPos.y,
-      z: window.lastSkeletonPos.z + 2
-    };
-    const userCamera = document.getElementById('userCamera');
-    if (userCamera) {
-      let currentPos = userCamera.getAttribute('position');
-      targetCamPos.x = lerp(currentPos.x, targetCamPos.x, 0.6);
-      targetCamPos.y = lerp(currentPos.y, targetCamPos.y, 0.6);
-      targetCamPos.z = lerp(currentPos.z, targetCamPos.z, 0.2);
-      userCamera.setAttribute('position', `${targetCamPos.x} ${targetCamPos.y} ${targetCamPos.z}`);
-    }
-  }
 }
