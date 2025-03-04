@@ -1,4 +1,3 @@
-
 let followMode = false;
 
 export function getFollowMode() {
