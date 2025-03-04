@@ -1,4 +1,4 @@
-// Follow 모드 및 키보드 이벤트 제어
+
 let followMode = false;
 
 export function getFollowMode() {
