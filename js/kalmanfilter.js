@@ -1,9 +1,9 @@
 import { matIdentity, matAdd, matMult, matTranspose, matScalarMultiply, vecAdd, vecSubtract, matVecMult, matInverse, numericalJacobian } from "./mathutils.js";
 import { r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, order } from "./constants.js";
 
-// EKF 상태전이 방정식 (프로젝션, 스무딩)
+// EKF state transition equation (Projection and Smoothing)
 
-// (x, y) 좌표를 구의 표면에 투영하는 함수
+// Function to project (x, y) coordinates onto the surface of a sphere
 export function projectToSphere(x, y, centerX, centerY, r) {
   let dx = x - centerX, dy = y - centerY;
   let distSq = dx * dx + dy * dy;
@@ -16,7 +16,7 @@ export function projectToSphere(x, y, centerX, centerY, r) {
   return [x, y];
 }
 
-// 스무딩 전환 함수 (최대 변화량 maxStep 적용)
+// Smoothing transition function (Applying maximum step size constraint)
 export function smoothTransition(currentValue, deltaSq, refValue, jointValue, maxStep = 0.05) {
   if (deltaSq < 0) return refValue;
   let predictedValue = refValue + Math.sign(jointValue - refValue) * Math.sqrt(deltaSq);
@@ -29,13 +29,13 @@ export function smoothTransition(currentValue, deltaSq, refValue, jointValue, ma
   return currentValue + diff;
 }
 
-// 현재 측정값을 담을 전역 변수 (poseHandler에서 설정)
+// Global variable to store current measurements (Set in poseHandler)
 export let CURRENT_MEAS = {
-  joints: null,      // 각 관절의 [x, y, raw z]
-  ref_joints: null   // 각 관절의 raw z 값 배열
+  joints: null,      // Each joint's [x, y, raw z] values
+  ref_joints: null   // Array of raw z-values for each joint
 };
 
-// 상태 전이 함수 (EKF용)
+// State transition function (For EKF)
 export function fx(state, dt) {
   let newState = state.slice();
   for (let k = 0; k < order.length; k++) {
@@ -45,31 +45,31 @@ export function fx(state, dt) {
     let refZValue = CURRENT_MEAS.ref_joints[i];
     let cx = CURRENT_MEAS.joints[i][0], cy = CURRENT_MEAS.joints[i][1];
     let parentIdx, radius, px, py;
-    if (i === 0) { // face
+    if (i === 0) { // Face
       parentIdx = null; radius = r11; px = 0; py = 0;
-    } else if (i === 7) { // left hip (특별 처리)
+    } else if (i === 7) { // Left hip (Special handling)
       parentIdx = null; radius = r11; px = 0; py = 0;
-    } else if (i === 8) { // right hip (특별 처리)
+    } else if (i === 8) { // Right hip (Special handling)
       parentIdx = null; radius = r11; px = 0; py = 0;
-    } else if (i === 1) { // left shoulder (부모: left hip, index 7)
+    } else if (i === 1) { // Left shoulder (Parent: Left hip, index 7)
       parentIdx = 7; radius = r6; px = CURRENT_MEAS.joints[7][0]; py = CURRENT_MEAS.joints[7][1];
-    } else if (i === 9) { // left knee (부모: left hip, index 7)
+    } else if (i === 9) { // Left knee (Parent: Left hip, index 7)
       parentIdx = 7; radius = r9; px = CURRENT_MEAS.joints[7][0]; py = CURRENT_MEAS.joints[7][1];
-    } else if (i === 3) { // left elbow (부모: left shoulder, index 1)
+    } else if (i === 3) { // Left elbow (Parent: Left shoulder, index 1)
       parentIdx = 1; radius = r5; px = CURRENT_MEAS.joints[1][0]; py = CURRENT_MEAS.joints[1][1];
-    } else if (i === 11) { // left ankle (부모: left knee, index 9)
+    } else if (i === 11) { // Left ankle (Parent: Left knee, index 9)
       parentIdx = 9; radius = r10; px = CURRENT_MEAS.joints[9][0]; py = CURRENT_MEAS.joints[9][1];
-    } else if (i === 5) { // left wrist (부모: left elbow, index 3)
+    } else if (i === 5) { // Left wrist (Parent: Left elbow, index 3)
       parentIdx = 3; radius = r4; px = CURRENT_MEAS.joints[3][0]; py = CURRENT_MEAS.joints[3][1];
-    } else if (i === 2) { // right shoulder (부모: right hip, index 8)
+    } else if (i === 2) { // Right shoulder (Parent: Right hip, index 8)
       parentIdx = 8; radius = r3; px = CURRENT_MEAS.joints[8][0]; py = CURRENT_MEAS.joints[8][1];
-    } else if (i === 10) { // right knee (부모: right hip, index 8)
+    } else if (i === 10) { // Right knee (Parent: Right hip, index 8)
       parentIdx = 8; radius = r7; px = CURRENT_MEAS.joints[8][0]; py = CURRENT_MEAS.joints[8][1];
-    } else if (i === 4) { // right elbow (부모: right shoulder, index 2)
+    } else if (i === 4) { // Right elbow (Parent: Right shoulder, index 2)
       parentIdx = 2; radius = r2; px = CURRENT_MEAS.joints[2][0]; py = CURRENT_MEAS.joints[2][1];
-    } else if (i === 12) { // right ankle (부모: right knee, index 10)
+    } else if (i === 12) { // Right ankle (Parent: Right knee, index 10)
       parentIdx = 10; radius = r8; px = CURRENT_MEAS.joints[10][0]; py = CURRENT_MEAS.joints[10][1];
-    } else if (i === 6) { // right wrist (부모: right elbow, index 4)
+    } else if (i === 6) { // Right wrist (Parent: Right elbow, index 4)
       parentIdx = 4; radius = r1; px = CURRENT_MEAS.joints[4][0]; py = CURRENT_MEAS.joints[4][1];
     } else {
       parentIdx = null; radius = 0; px = 0; py = 0;
@@ -91,11 +91,12 @@ export function fx(state, dt) {
   return newState;
 }
 
-// 측정 함수 hx(x) = x
+// Measurement function hx(x) = x
 export function hx(x) {
   return x.slice();
 }
 
+// Extended Kalman Filter class
 export class ExtendedKalmanFilter {
   constructor(dim_x, dim_z) {
     this.dim_x = dim_x;
