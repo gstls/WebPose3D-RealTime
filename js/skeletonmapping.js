@@ -1,26 +1,26 @@
 import { r11, r6, r9, r5, r4, r3, r7, r10, r2, r1, r8 } from "./constants.js";
 
-// 측정된 관절 좌표를 부모–자식 관계에 따라 재맵핑하는 함수
+// Function to remap measured joint coordinates based on parent-child relationships
 export function computeRemappedPositions(measuredPositions) {
   const kinMap = {
-    0: { parent: null, length: 0 },   // face (루트)
-    7: { parent: null, length: 0 },   // left hip (특별 처리)
-    8: { parent: null, length: 0 },   // right hip (특별 처리)
-    1: { parent: 7, length: r6 },     // left shoulder (부모: left hip)
-    9: { parent: 7, length: r9 },     // left knee (부모: left hip)
-    3: { parent: 1, length: r5 },     // left elbow (부모: left shoulder)
-    11: { parent: 9, length: r10 },   // left ankle (부모: left knee)
-    5: { parent: 3, length: r4 },     // left wrist (부모: left elbow)
-    2: { parent: 8, length: r3 },     // right shoulder (부모: right hip)
-    10: { parent: 8, length: r7 },    // right knee (부모: right hip)
-    4: { parent: 2, length: r2 },     // right elbow (부모: right shoulder)
-    12: { parent: 10, length: r8 },   // right ankle (부모: right knee)
-    6: { parent: 4, length: r1 }      // right wrist (부모: right elbow)
+    0: { parent: null, length: 0 },   // Face (root)
+    7: { parent: null, length: 0 },   // Left hip (special case)
+    8: { parent: null, length: 0 },   // Right hip (special case)
+    1: { parent: 7, length: r6 },     // Left shoulder (Parent: Left hip)
+    9: { parent: 7, length: r9 },     // Left knee (Parent: Left hip)
+    3: { parent: 1, length: r5 },     // Left elbow (Parent: Left shoulder)
+    11: { parent: 9, length: r10 },   // Left ankle (Parent: Left knee)
+    5: { parent: 3, length: r4 },     // Left wrist (Parent: Left elbow)
+    2: { parent: 8, length: r3 },     // Right shoulder (Parent: Right hip)
+    10: { parent: 8, length: r7 },    // Right knee (Parent: Right hip)
+    4: { parent: 2, length: r2 },     // Right elbow (Parent: Right shoulder)
+    12: { parent: 10, length: r8 },   // Right ankle (Parent: Right knee)
+    6: { parent: 4, length: r1 }      // Right wrist (Parent: Right elbow)
   };
 
   let remappedPositions = new Array(measuredPositions.length);
 
-  // 1단계: 엉덩이(인덱스 7,8)를 먼저 처리
+  // Step 1: Process hips (indices 7, 8) first
   let leftHipMeasured = measuredPositions[7];
   let rightHipMeasured = measuredPositions[8];
   if (!leftHipMeasured || !rightHipMeasured) {
@@ -48,7 +48,7 @@ export function computeRemappedPositions(measuredPositions) {
     z: center.z + unit.z * r11
   };
 
-  // 2단계: 나머지 관절을 부모–자식 순서에 따라 처리
+  // Step 2: Process the remaining joints in parent-child order
   let orderWithoutHips = Object.keys(kinMap)
     .filter(idx => idx !== "7" && idx !== "8")
     .map(Number);
@@ -80,27 +80,25 @@ export function computeRemappedPositions(measuredPositions) {
   return remappedPositions;
 }
 
-
-
 /*
 export function clampPositions(positions, previousPositions, maxStep = 0.15, smoothingFactor = 0.8) {
-  // 이전 값이 없으면 그대로 반환
+  // Return the positions as-is if there are no previous values
   if (!previousPositions) return positions;
   let clamped = [];
   for (let i = 0; i < positions.length; i++) {
     let current = positions[i];
     let prev = previousPositions[i] || { x: current.x, y: current.y, z: current.z };
 
-    // 이전 위치와의 차이 벡터 계산
+    // Calculate the difference vector between the current and previous positions
     let diff = {
       x: current.x - prev.x,
       y: current.y - prev.y,
       z: current.z - prev.z
     };
-    // 차이 벡터의 크기 계산
+    // Compute the magnitude of the difference vector
     let mag = Math.sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
     
-    // 전체 이동 거리가 maxStep을 초과하면 비례적으로 축소
+    // If the total movement exceeds maxStep, proportionally scale it down
     if (mag > maxStep) {
       let scale = maxStep / mag;
       diff.x *= scale;
@@ -108,14 +106,14 @@ export function clampPositions(positions, previousPositions, maxStep = 0.15, smo
       diff.z *= scale;
     }
     
-    // 목표 위치 계산 (이전 위치에 클램핑된 차이를 더함)
+    // Compute the target position (previous position + clamped difference)
     let target = {
       x: prev.x + diff.x,
       y: prev.y + diff.y,
       z: prev.z + diff.z
     };
     
-    // 선형 보간을 사용해 이전 위치에서 목표 위치로 부드럽게 이동
+    // Smoothly transition from the previous position to the target using linear interpolation
     let newPos = {
       x: prev.x + (target.x - prev.x) * smoothingFactor,
       y: prev.y + (target.y - prev.y) * smoothingFactor,
