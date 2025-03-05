@@ -14,7 +14,7 @@ Watch the video to see smoother real-time pose estimation.
 - This project aims to find an optimal balance between the accuracy and computational cost of pose estimation models. Furthermore, it enhances scalability for real-time applications.
 
 ## Solution Approach
-- In this project, the z-coordinate predicted by lightweight pose estimation models is treated as noise and filtered using a Kalman filter to improve stability and accuracy."
+- In this project, the z-coordinate predicted by lightweight pose estimation models (MediaPipe) is treated as noise and filtered using a Kalman filter to improve stability and accuracy.
 - The Kalman filter is an algorithm that estimates the true state of a system by recursively filtering out noise from observed data. It is widely used in real-time tracking applications to improve accuracy and stability.
 - In the Kalman filter, state transition is a key factor, and defining this function properly plays a crucial role in determining the filter's performance.
 - This project uses a Kalman filter state transition function that incorporates a smoothing transition method while enforcing projection constraints based on predefined joint lengths, ensuring gradual and stable updates with a maximum step size constraint.
