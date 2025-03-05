@@ -19,12 +19,12 @@ Watch the video to see smoother real-time pose estimation.
 - In the Kalman filter, state transition is a key factor, and defining this function properly plays a crucial role in determining the filter's performance.
 - This project uses a Kalman filter state transition function that incorporates a smoothing transition method while enforcing projection constraints based on predefined joint lengths, ensuring gradual and stable updates with a maximum step size constraint.
 
-## Project Overview
+# Project Overview
 ### Joint Information
-#### MediaPipe Joint Information
+- #### MediaPipe Joint Information
 ![Image](https://github.com/user-attachments/assets/21b50d65-89d6-48bc-b6af-3cd2a9c0f65c)
 
-#### Selected Joints Information 
+- #### Selected Joints Information 
 ![Image](https://github.com/user-attachments/assets/fbcaaf9f-c392-42f1-8888-ea22458c664b)
 
 This project selects only the minimal set of joints necessary to identify the user's posture.
