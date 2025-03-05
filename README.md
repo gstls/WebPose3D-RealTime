@@ -45,6 +45,8 @@ This project selects only the minimal set of joints necessary to identify the us
 
 ### Kalman Filter State Transition and Batch Update Process for Each Joint: Pseudo Code
 
+![Image](https://github.com/user-attachments/assets/db2a38cc-9678-4c9c-925a-fe0e539f3300)
+
 # Getting Started
 - This project does not require any additional library installations. Simply download the project and run index.html using Live Server or via npm.
 - Click the 'Follow Skeleton' button while running the project to activate the third-person camera, allowing it to follow the skeleton.
