@@ -43,6 +43,8 @@ This project selects only the minimal set of joints necessary to identify the us
 - As a post-processing step, remapping is applied to ensure that the predefined joint lengths are maintained within the 3D virtual environment.
 - The average update time for each joint within a single frame is 4ms, causing little to no noticeable latency.
 
+### Kalman Filter State Transition and Batch Update Process for Each Joint: Pseudo Code
+
 # Getting Started
 - This project does not require any additional library installations. Simply download the project and run index.html using Live Server or via npm.
 - Click the 'Follow Skeleton' button while running the project to activate the third-person camera, allowing it to follow the skeleton.
