@@ -38,9 +38,10 @@ This project selects only the minimal set of joints necessary to identify the us
 
 ### Filtering Chain and Post-Processing
 
-- A separate Kalman filter is created for each joint, and the filtered values are propagated until no additional connected joints remain from the waist center.
+- A separate Kalman filter is created for each joint, and the filtered values are propagated until no additional connected joints remain from the waist center. The facial skeleton applies an independent filter.
 - To prevent synchronization issues caused by varying filtering speeds across joints, the filtering chain updates all joints within a single frame before rendering them in the virtual environment.
 - As a post-processing step, remapping is applied to ensure that the predefined joint lengths are maintained within the 3D virtual environment.
+- The average update time for each joint within a single frame is 4ms, causing little to no noticeable latency.
 
 # Getting Started
 - This project does not require any additional library installations. Simply download the project and run index.html using Live Server or via npm.
