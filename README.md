@@ -36,6 +36,12 @@ This project selects only the minimal set of joints necessary to identify the us
 - Finally, clamping is applied to ensure that the estimated values remain within valid limits, preventing unrealistic deviations.
 - Since joint lengths can vary from person to person, appropriate adjustments are necessary. One possible approach is to upload an image with the arms and legs fully extended and calculate the 2D Euclidean distances.
 
+### Filtering Chain and Post-Processing
+
+- A separate Kalman filter is created for each joint, and the filtered values are propagated until no additional connected joints remain from the waist center.
+- To prevent synchronization issues caused by varying filtering speeds across joints, the filtering chain updates all joints within a single frame before rendering them in the virtual environment.
+- As a post-processing step, remapping is applied to ensure that the predefined joint lengths are maintained within the 3D virtual environment.
+
 # Getting Started
 - This project does not require any additional library installations. Simply download the project and run index.html using Live Server or via npm.
 - Click the 'Follow Skeleton' button while running the project to activate the third-person camera, allowing it to follow the skeleton.
