@@ -3,6 +3,7 @@
 - Mediapipe is a body-tracking framework developed by Google. [More information about mediapipe](https://developers.google.com/mediapipe)
 
 ## Demo Video
+Watch the demo video to see real-time pose estimation
 
 ![Image](https://github.com/user-attachments/assets/da229835-2309-4ef2-b1f8-be291aac1657)
 
@@ -43,11 +44,11 @@ This project selects only the minimal set of joints necessary to identify the us
 - As a post-processing step, remapping is applied to ensure that the predefined joint lengths are maintained within the 3D virtual environment.
 - The average update time for each joint within a single frame is 4ms, causing little to no noticeable latency.
 
-### Kalman Filter State Transition and Batch Update Process for Each Joint: Pseudo Code
+### Kalman Filter: State Transition & Batch Update (Pseudo Code)
 
 ![Image](https://github.com/user-attachments/assets/db2a38cc-9678-4c9c-925a-fe0e539f3300)
 
 # Getting Started
 - This project does not require any additional library installations. Simply download the project and run index.html using Live Server or via npm.
-- Click the 'Follow Skeleton' button while running the project to activate the third-person camera, allowing it to follow the skeleton.
+- Click the 'Follow Skeleton' button while running the project to enable the third-person camera, allowing it to track and follow the skeleton.
 
